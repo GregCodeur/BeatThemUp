@@ -26,14 +26,24 @@ function CreateSprite(pType,pX,pY)
     
     
     --Todo animation
-    hero.images = {};
-    hero.images["idle"] = love.graphics.newImage("images/blaze_idle_1.png");
-    hero.images["combo"] = love.graphics.newImage("images/blaze_combo_1.png");
-    lstCombo = {};
-    for i = 1,9 do
-      table.insert(lstCombo,i,love.graphics.newImage("images/blaze_combo_"..i..".png"));
+    hero.animations = {};
+    hero.animations["idle"] = {1};
+    hero.animations["walk"] = {2,3,4,5,6,7};
+    
+    hero.lstFrame = {};
+    table.insert(hero.lstFrame,1,love.graphics.newImage("images/blaze_idle_1.png"));
+    for i = 2,7 do
+      table.insert(hero.lstFrame,i,love.graphics.newImage("images/blaze_walk_"..i..".png"));
     end
-    hero.images["combo"] = lstCombo;
+
+    hero.animations["combo"] = love.graphics.newImage("images/blaze_combo_1.png");
+    
+    hero.frame = 1;
+    
+    --for i = 1,9 do
+    --  table.insert(lstCombo,i,love.graphics.newImage("images/blaze_combo_"..i..".png"));
+    --end
+    --hero.animations["combo"] = lstCombo;
     --Fin animation
     
     
@@ -43,7 +53,11 @@ function CreateSprite(pType,pX,pY)
     hero.image["kick"] = love.graphics.newImage("images/blaze_combo_8.png");
     hero.state = "idle";
     
-    hero.spriteAAfficher = hero.images["idle"];
+    
+    hero.timerAnimation = 0;
+    hero.animationSpeed = 0.2;
+    
+    --hero.spriteAAfficher = hero.images["idle"];
     
     hero.x = pX;
     hero.y = pY;
@@ -54,6 +68,14 @@ function CreateSprite(pType,pX,pY)
     
   end
   
+end
+
+function ChangerAnimation(pSprite, pState)
+  if(pSprite.state ~= pState) then
+    pSprite.state = pState;
+    pSprite.frame = 1;
+    
+  end
 end
 
 function love.load()
@@ -70,46 +92,78 @@ function love.load()
   
 end
 
+function UpdateCamera()
+  local dif = camera.x + hero.x;
+  if(dif < 70) then
+    camera.x = camera.x + 1;
+  elseif(dif > (love.graphics.getWidth()/2)-70) then
+    camera.x = camera.x - 1;
+  end
+end
+
 function love.update(dt)
-  updateKeyboard(dt);
+  local tick = false;
+  hero.timerAnimation = hero.timerAnimation + dt
+  if(hero.timerAnimation >= hero.animationSpeed) then
+    tick = true;
+    hero.timerAnimation = 0;
+  end
   
+  if(tick == true) then
+    hero.frame = hero.frame + 1;
+    if(hero.frame > #hero.animations[hero.state]) then
+      hero.frame = 1;
+    end
+  end
+  
+  updateKeyboard(dt);
+  UpdateCamera();
   barSize = 200 * (hero.pv / 200);
 end
 
 function updateKeyboard(dt)
   if(love.keyboard.isDown("right")) then
-      hero.state = "idle";
+      ChangerAnimation(hero,"walk");
       hero.x = hero.x + hero.vx * dt
   end
   
   if(love.keyboard.isDown("left")) then
-    hero.state = "idle";
+    ChangerAnimation(hero,"walk");
     hero.x = hero.x - hero.vx * dt;
   end
   
   if(love.keyboard.isDown("a")) then
-    hero.state = "punch"; 
+    ChangerAnimation(hero,"punch");
     --if(hero.state == "combo") then
       --local sprite = hero.images["combo"][hero.spriteAAfficher];
     --else
       --hero.state = "combo";
     --end
-  elseif(love.keyboard.isDown("z")) then
-    hero.state = "kick";
-  else
-    hero.state = "idle";
+  end
+  
+  if(love.keyboard.isDown("z")) then
+    ChangerAnimation(hero,"kick");
   end
   
   if(love.keyboard.isDown("r")) then
     hero.pv = hero.pv - 10;
   end
   
+  if(action == false) then
+    ChangerAnimation(hero,"idle");
+  end
+  
 end
 
 function love.draw()
   love.graphics.scale(2,2); 
-  love.graphics.draw(backgrdStage,0,0);
-  love.graphics.draw(hero.image[hero.state],hero.x + camera.x,hero.y);
+  love.graphics.draw(backgrdStage,camera.x,0);
+  
+  local imageNumber = hero.animations[hero.state][hero.frame]
+  local imageFrame = hero.lstFrame[imageNumber]
+  love.graphics.draw(imageFrame,hero.x + camera.x,hero.y);
+  
+  
   love.graphics.setColor(255,000,000);
   love.graphics.rectangle("fill",2,2,200,8);
   love.graphics.setColor(255,255,000);
