@@ -29,6 +29,7 @@ function CreateSprite(pType,pX,pY)
     hero.animations = {};
     hero.animations["idle"] = {1};
     hero.animations["walk"] = {2,3,4,5,6,7};
+    hero.animations["combo"] = {8,9,10,11,12,13,14,15}
     
     hero.lstFrame = {};
     table.insert(hero.lstFrame,1,love.graphics.newImage("images/blaze_idle_1.png"));
@@ -36,7 +37,12 @@ function CreateSprite(pType,pX,pY)
       table.insert(hero.lstFrame,i,love.graphics.newImage("images/blaze_walk_"..i..".png"));
     end
 
-    hero.animations["combo"] = love.graphics.newImage("images/blaze_combo_1.png");
+    --for i = 8,15 do
+    --  table.insert(hero.lstFrame,i,love.graphics.newImage("images/blaze_combo_"..i..".png"));
+    --end
+    table.insert(hero.lstFrame,8,love.graphics.newImage("images/blaze_combo_8.png"));
+
+    --hero.animations["combo"] = love.graphics.newImage("images/blaze_combo_1.png");
     
     hero.frame = 1;
     
@@ -47,10 +53,10 @@ function CreateSprite(pType,pX,pY)
     --Fin animation
     
     
-    hero.image = {};
-    hero.image["idle"] = love.graphics.newImage("images/blaze_idle_1.png");
-    hero.image["punch"] = love.graphics.newImage("images/blaze_combo_1.png");
-    hero.image["kick"] = love.graphics.newImage("images/blaze_combo_8.png");
+    --hero.image = {};
+    --hero.image["idle"] = love.graphics.newImage("images/blaze_idle_1.png");
+    --hero.image["punch"] = love.graphics.newImage("images/blaze_combo_1.png");
+    --hero.image["kick"] = love.graphics.newImage("images/blaze_combo_8.png");
     hero.state = "idle";
     
     
@@ -122,18 +128,23 @@ function love.update(dt)
 end
 
 function updateKeyboard(dt)
+  local action = false;
+  
   if(love.keyboard.isDown("right")) then
       ChangerAnimation(hero,"walk");
+      action = true;
       hero.x = hero.x + hero.vx * dt
   end
   
   if(love.keyboard.isDown("left")) then
+    action = true;
     ChangerAnimation(hero,"walk");
     hero.x = hero.x - hero.vx * dt;
   end
   
   if(love.keyboard.isDown("a")) then
-    ChangerAnimation(hero,"punch");
+    action = true;
+    ChangerAnimation(hero,"combo");
     --if(hero.state == "combo") then
       --local sprite = hero.images["combo"][hero.spriteAAfficher];
     --else
@@ -142,7 +153,8 @@ function updateKeyboard(dt)
   end
   
   if(love.keyboard.isDown("z")) then
-    ChangerAnimation(hero,"kick");
+    action = true;
+    ChangerAnimation(hero,"combo");
   end
   
   if(love.keyboard.isDown("r")) then
