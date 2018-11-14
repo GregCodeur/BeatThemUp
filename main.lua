@@ -17,6 +17,17 @@ local TYPE_SPRITE = {};
 TYPE_SPRITE.HERO = "hero";
 TYPE_SPRITE.ENNEMI = "ennemi";
 
+local ennemi = {};
+
+
+function CheckCollision(x1,y1,w1,h1,x2,y2,w2,h2)
+  return x1 < x2+w2 and
+  x2 < x1 + w1 and
+  y1 < y2 + h2 and
+  y2 < y1 + h1
+end
+
+
 function loadStage(numStage)
   backgrdStage = love.graphics.newImage("images/stages/"..numStage..".jpeg");
 end
@@ -29,7 +40,7 @@ function CreateSprite(pType,pX,pY)
     hero.animations = {};
     hero.animations["idle"] = {1};
     hero.animations["walk"] = {2,3,4,5,6,7};
-    hero.animations["combo"] = {8,9,10,11,12,13,14,15}
+    hero.animations["combo"] = {8}
     
     hero.lstFrame = {};
     table.insert(hero.lstFrame,1,love.graphics.newImage("images/blaze_idle_1.png"));
@@ -42,6 +53,7 @@ function CreateSprite(pType,pX,pY)
     --end
     table.insert(hero.lstFrame,8,love.graphics.newImage("images/blaze_combo_8.png"));
 
+    
     --hero.animations["combo"] = love.graphics.newImage("images/blaze_combo_1.png");
     
     hero.frame = 1;
@@ -70,8 +82,36 @@ function CreateSprite(pType,pX,pY)
     hero.vx = 60;
     hero.vy = 60;
     hero.pv = 200;
-  elseif(pType == TYPE_SPRITE.ENNEMI) then
     
+    hero.hurtBox = {};
+    hero.hurtBox["walk"] = {};
+    for i = 2,7 do
+      hero.hurtBox["walk"][i-1] = {x=hero.lstFrame[i]:getWidth()/2,y=hero.lstFrame[i]:getHeight()/2,w=hero.lstFrame[i]:getWidth()/1.5,h=hero.lstFrame[i]:getHeight()/2};
+    end
+    print(#hero.hurtBox["walk"]);
+    
+    hero.hurtBox["idle"] = {};
+    hero.hurtBox["idle"][1] = {x=hero.lstFrame[1]:getWidth()/2,y=hero.lstFrame[1]:getHeight()/2,w=hero.lstFrame[1]:getWidth()/1.5,h=hero.lstFrame[1]:getHeight()/2};
+    
+    hero.hurtBox["combo"] = {};
+    hero.hurtBox["combo"][1] = {}
+    
+  elseif(pType == TYPE_SPRITE.ENNEMI) then
+      
+      ennemi.state = "idle";
+      ennemi.animations = {};
+      ennemi.animations["idle"] = {1};
+      
+      ennemi.lstFrame = {};
+      table.insert(ennemi.lstFrame,1,love.graphics.newImage("images/blaze_idle_1.png"));
+      
+      ennemi.frame = 1;
+      
+      ennemi.x = pX;
+      ennemi.y = pY;
+      ennemi.vx = 60;
+      ennemi.vy = 60;
+      ennemi.pv = 200;
   end
   
 end
@@ -92,6 +132,7 @@ function love.load()
   loadStage(2);
   
   CreateSprite(TYPE_SPRITE.HERO,largeur/4,hauteur/3);
+  CreateSprite(TYPE_SPRITE.ENNEMI, largeur/2,hauteur/3);
   
   love.window.setMode(440 * 2,220*2)
   love.window.setTitle("")
@@ -174,6 +215,11 @@ function love.draw()
   local imageNumber = hero.animations[hero.state][hero.frame]
   local imageFrame = hero.lstFrame[imageNumber]
   love.graphics.draw(imageFrame,hero.x + camera.x,hero.y);
+  
+  
+  local imageNumberEnnemi = ennemi.animations[ennemi.state][ennemi.frame]
+  local imageFrameEnnemi = ennemi.lstFrame[imageNumberEnnemi]
+  love.graphics.draw(imageFrameEnnemi,ennemi.x + camera.x,ennemi.y);
   
   
   love.graphics.setColor(255,000,000);
