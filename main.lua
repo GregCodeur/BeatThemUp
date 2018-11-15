@@ -13,6 +13,7 @@ local hero = {};
 local barSize = 200;
 local camera = {};
 camera.x = 0;
+camera.y = 0;
 local TYPE_SPRITE = {};
 TYPE_SPRITE.HERO = "hero";
 TYPE_SPRITE.ENNEMI = "ennemi";
@@ -192,7 +193,7 @@ function SetBoxes()
       CreeBox(lstHurtBoxes,myBox, "hero", hero)
     end
   end
-  if(hero.hitBoxe[hero.state]) then
+  if(hero.hitBox[hero.state]) then
     myBox = hero.hitBox[hero.state][hero.frame];
     if(myBox ~= nil) then
       CreeBox(lstHitBoxes,myBox,"hero",hero);
@@ -210,7 +211,7 @@ function CreeBox(pList,pBox,pWho,pSprite)
   myBox.x = pSprite.x + pBox.x + camera.x;
   myBox.y = pSprite.y + pBox.y + camera.y;
   myBox.w = pBox.w;
-  mybox.h = pBox.h;
+  myBox.h = pBox.h;
   table.insert(pList,myBox);
   return myBox;
 end
