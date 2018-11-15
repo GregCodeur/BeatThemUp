@@ -19,6 +19,7 @@ TYPE_SPRITE.ENNEMI = "ennemi";
 
 local ennemi = {};
 
+local bTestCollision;
 
 function CheckCollision(x1,y1,w1,h1,x2,y2,w2,h2)
   return x1 < x2+w2 and
@@ -93,8 +94,9 @@ function CreateSprite(pType,pX,pY)
     hero.hurtBox["idle"] = {};
     hero.hurtBox["idle"][1] = {x=hero.lstFrame[1]:getWidth()/2,y=hero.lstFrame[1]:getHeight()/2,w=hero.lstFrame[1]:getWidth()/1.5,h=hero.lstFrame[1]:getHeight()/2};
     
-    hero.hurtBox["combo"] = {};
-    hero.hurtBox["combo"][1] = {}
+    hero.hitBox = {};
+    hero.hitBox["combo"] = {};
+    hero.hitBox["combo"][1] = {x=hero.lstFrame[8]:getWidth(),y=hero.lstFrame[8]:getHeight(),w=hero.lstFrame[8]:getWidth(),h=hero.lstFrame[8]:getHeight()};
     
   elseif(pType == TYPE_SPRITE.ENNEMI) then
       
@@ -112,6 +114,12 @@ function CreateSprite(pType,pX,pY)
       ennemi.vx = 60;
       ennemi.vy = 60;
       ennemi.pv = 200;
+      
+      
+      ennemi.hurtBox = {};
+      ennemi.hurtBox["idle"] = {};
+      ennemi.hurtBox["idle"][1] = {x=ennemi.lstFrame[1]:getWidth()/2,y=ennemi.lstFrame[1]:getHeight()/2,w=ennemi.lstFrame[1]:getWidth()/1.5,h=ennemi.lstFrame[1]:getHeight()/2};
+      
   end
   
 end
@@ -120,8 +128,9 @@ function ChangerAnimation(pSprite, pState)
   if(pSprite.state ~= pState) then
     pSprite.state = pState;
     pSprite.frame = 1;
-    
+    return true;
   end
+  return false;
 end
 
 function love.load()
@@ -165,8 +174,63 @@ function love.update(dt)
   
   updateKeyboard(dt);
   UpdateCamera();
+  SetBoxes();
+  if(bTestCollision) then
+    TestCollisions();
+  end
+  
   barSize = 200 * (hero.pv / 200);
 end
+
+function SetBoxes()
+  lstHurtBoxes = {};
+  lstHitBoxes = {};
+  
+  if(hero.hurtBox[hero.state] ~= nil) then
+    myBox = hero.hurtBox[hero.state][hero.frame];
+    if(myBox ~=nil) then
+      CreeBox(lstHurtBoxes,myBox, "hero", hero)
+    end
+  end
+  if(hero.hitBoxe[hero.state]) then
+    myBox = hero.hitBox[hero.state][hero.frame];
+    if(myBox ~= nil) then
+      CreeBox(lstHitBoxes,myBox,"hero",hero);
+    end
+  end
+  
+  
+  myBox = ennemi.hurtBox["idle"][ennemi.frame];
+  CreeBox(lstHurtBoxes,myBox,"ennemi",ennemi);
+  
+end
+
+function CreeBox(pList,pBox,pWho,pSprite)
+  local myBox = {};
+  myBox.x = pSprite.x + pBox.x + camera.x;
+  myBox.y = pSprite.y + pBox.y + camera.y;
+  myBox.w = pBox.w;
+  mybox.h = pBox.h;
+  table.insert(pList,myBox);
+  return myBox;
+end
+
+function TestCollisions()
+  for hit=1, #lstHitBoxes do
+    local hitb = lstHitBoxes[hit];
+    for hurt=1,#lstHurtBoxes do
+      local hurtb = lstHurtBoxes[hurt]
+      if(CheckCollision(hitb.x,hitb.y,hitb.w,hitb.h,hurtb.x,hurtb.y,hurtb.w,hurtb.h) == true) then
+          if(hitb.who ~= hurtb.who) then
+            print(htib.who.." vient de frapper "..hurtb.who)
+            LastActionBy = hitb.who
+          end
+      end
+    end
+  end
+  
+end
+
 
 function updateKeyboard(dt)
   local action = false;
@@ -185,7 +249,7 @@ function updateKeyboard(dt)
   
   if(love.keyboard.isDown("a")) then
     action = true;
-    ChangerAnimation(hero,"combo");
+    bTestCollision = ChangerAnimation(hero,"combo");
     --if(hero.state == "combo") then
       --local sprite = hero.images["combo"][hero.spriteAAfficher];
     --else
