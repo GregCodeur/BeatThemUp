@@ -20,6 +20,12 @@ TYPE_SPRITE.ENNEMI = "ennemi";
 
 local ennemi = {};
 
+local coordonneeCollision = {};
+coordonneeCollision.x = 0;
+coordonneeCollision.y = 0;
+coordonneeCollision.h = 0;
+coordonneeCollision.w = 0;
+
 local bTestCollision;
 
 function CheckCollision(x1,y1,w1,h1,x2,y2,w2,h2)
@@ -43,6 +49,7 @@ function CreateSprite(pType,pX,pY)
     hero.animations["idle"] = {1};
     hero.animations["walk"] = {2,3,4,5,6,7};
     hero.animations["combo"] = {8}
+
     
     hero.lstFrame = {};
     table.insert(hero.lstFrame,1,love.graphics.newImage("images/blaze_idle_1.png"));
@@ -97,7 +104,12 @@ function CreateSprite(pType,pX,pY)
     
     hero.hitBox = {};
     hero.hitBox["combo"] = {};
-    hero.hitBox["combo"][1] = {x=hero.lstFrame[8]:getWidth(),y=hero.lstFrame[8]:getHeight(),w=hero.lstFrame[8]:getWidth(),h=hero.lstFrame[8]:getHeight()};
+    hero.hitBox["combo"][1] = {x=hero.lstFrame[8]:getWidth(),y=hero.lstFrame[8]:getHeight(),w=hero.lstFrame[8]:getWidth(),h=31};
+    
+    
+    hero.hurt = false;
+    hero.hit = false;
+    
     
   elseif(pType == TYPE_SPRITE.ENNEMI) then
       
@@ -120,6 +132,9 @@ function CreateSprite(pType,pX,pY)
       ennemi.hurtBox = {};
       ennemi.hurtBox["idle"] = {};
       ennemi.hurtBox["idle"][1] = {x=ennemi.lstFrame[1]:getWidth()/2,y=ennemi.lstFrame[1]:getHeight()/2,w=ennemi.lstFrame[1]:getWidth()/1.5,h=ennemi.lstFrame[1]:getHeight()/2};
+      
+      ennemi.hurt = false;
+      ennemi.hit = false;
       
   end
   
@@ -212,19 +227,27 @@ function CreeBox(pList,pBox,pWho,pSprite)
   myBox.y = pSprite.y + pBox.y + camera.y;
   myBox.w = pBox.w;
   myBox.h = pBox.h;
+  myBox.who = pWho;
   table.insert(pList,myBox);
   return myBox;
 end
 
 function TestCollisions()
+  hero.hit = false;
   for hit=1, #lstHitBoxes do
     local hitb = lstHitBoxes[hit];
     for hurt=1,#lstHurtBoxes do
       local hurtb = lstHurtBoxes[hurt]
       if(CheckCollision(hitb.x,hitb.y,hitb.w,hitb.h,hurtb.x,hurtb.y,hurtb.w,hurtb.h) == true) then
           if(hitb.who ~= hurtb.who) then
-            print(htib.who.." vient de frapper "..hurtb.who)
+            --print(hitb.who.." vient de frapper "..hurtb.who)
+            print("x: "..hitb.x.." y: "..hitb.y);
             LastActionBy = hitb.who
+            hero.hit = true;
+            coordonneeCollision.x = hitb.x;
+            coordonneeCollision.y = hitb.y;
+            coordonneeCollision.h = hitb.h;
+            coordonneeCollision.w = hitb.w;
           end
       end
     end
@@ -277,6 +300,8 @@ function love.draw()
   love.graphics.scale(2,2); 
   love.graphics.draw(backgrdStage,camera.x,0);
   
+
+  
   local imageNumber = hero.animations[hero.state][hero.frame]
   local imageFrame = hero.lstFrame[imageNumber]
   love.graphics.draw(imageFrame,hero.x + camera.x,hero.y);
@@ -288,11 +313,19 @@ function love.draw()
   
   
   love.graphics.setColor(255,000,000);
+  love.graphics.print("x : "..love.mouse.getX().." y : "..love.mouse.getY(),0,50);
   love.graphics.rectangle("fill",2,2,200,8);
   love.graphics.setColor(255,255,000);
   love.graphics.rectangle("fill",2,2,barSize,8);
   love.graphics.setColor(255,255,255);
   love.graphics.print("barSize "..barSize,230,0);
+  
+  if(hero.hit) then
+    love.graphics.setColor(0,0,1)
+    love.graphics.rectangle("fill",coordonneeCollision.x,coordonneeCollision.y,80,80);
+  end
+  love.graphics.setColor(255,255,255);
+  
 end
 
 function love.keypressed(key)
