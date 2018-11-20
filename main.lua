@@ -104,7 +104,7 @@ function CreateSprite(pType,pX,pY)
     
     hero.hitBox = {};
     hero.hitBox["combo"] = {};
-    hero.hitBox["combo"][1] = {x=hero.lstFrame[8]:getWidth(),y=hero.lstFrame[8]:getHeight(),w=hero.lstFrame[8]:getWidth(),h=31};
+    hero.hitBox["combo"][1] = {x=hero.lstFrame[8]:getWidth()/3.7,y=hero.lstFrame[8]:getHeight()/4,w=hero.lstFrame[8]:getWidth(),h=31};
     
     
     hero.hurt = false;
@@ -116,9 +116,12 @@ function CreateSprite(pType,pX,pY)
       ennemi.state = "idle";
       ennemi.animations = {};
       ennemi.animations["idle"] = {1};
+      ennemi.animations["hurt"] = {2};
+      
       
       ennemi.lstFrame = {};
       table.insert(ennemi.lstFrame,1,love.graphics.newImage("images/blaze_idle_1.png"));
+      table.insert(ennemi.lstFrame,2,love.graphics.newImage("images/blaze_combo_10.png"))
       
       ennemi.frame = 1;
       
@@ -181,12 +184,7 @@ function love.update(dt)
     hero.timerAnimation = 0;
   end
   
-  if(tick == true) then
-    hero.frame = hero.frame + 1;
-    if(hero.frame > #hero.animations[hero.state]) then
-      hero.frame = 1;
-    end
-  end
+
   
   updateKeyboard(dt);
   UpdateCamera();
@@ -195,7 +193,24 @@ function love.update(dt)
     TestCollisions();
   end
   
+  if(hero.hit) then 
+    ennemi.state = 'hurt';
+  else
+    ennemi.state = 'idle';
+  end
+  
   barSize = 200 * (hero.pv / 200);
+  
+  if(tick == true) then
+    hero.frame = hero.frame + 1;
+    if(hero.frame > #hero.animations[hero.state]) then
+      hero.frame = 1;
+    end
+    if(hero.hit) then
+      hero.hit = false;
+    end
+  end
+  
 end
 
 function SetBoxes()
@@ -322,7 +337,7 @@ function love.draw()
   
   if(hero.hit) then
     love.graphics.setColor(0,0,1)
-    love.graphics.rectangle("fill",coordonneeCollision.x,coordonneeCollision.y,80,80);
+    love.graphics.rectangle("fill",coordonneeCollision.x,coordonneeCollision.y,imageFrame:getWidth()/2,20);
   end
   love.graphics.setColor(255,255,255);
   
