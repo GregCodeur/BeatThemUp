@@ -18,6 +18,25 @@ local TYPE_SPRITE = {};
 TYPE_SPRITE.HERO = "hero";
 TYPE_SPRITE.ENNEMI = "ennemi";
 
+Sequence = "";
+PreviousAction = "";
+TimerDuration = 0.5;
+TimerReset = TimerDuration;
+
+ActionList = {};
+ActionList["up"] = "U-";
+ActionList["left"] = "L-";
+ActionList["down"] = "D-";
+ActionList["down-right"] = "RD";
+ActionList["right"] = "R-";
+
+ComboList = {};
+ComboList[1] = {};
+ComboList[1].name = "Hadou Ken";
+ComboList[1].button = "space";
+ComboList[1].sequence = "R-R-";
+
+
 local ennemi = {};
 
 local coordonneeCollision = {};
@@ -184,10 +203,22 @@ function love.update(dt)
     hero.timerAnimation = 0;
   end
   
+  TimerReset = TimerReset - dt;
+  if (TimerReset <= 0) then
+    print("TimerReset : "..TimerReset);
+    Sequence = "";
+    TimerReset = TimerDuration;
+  end
 
   
   updateKeyboard(dt);
   UpdateCamera();
+  
+  local sequence3 = string.sub(Sequence, #Sequence-(3*2)+1,#Sequence)
+  TestCombo(sequence3)
+  print("sequence3 : "..sequence3);
+  print(TestCombo(sequence3));
+  
   SetBoxes();
   if(bTestCollision) then
     TestCollisions();
@@ -212,6 +243,20 @@ function love.update(dt)
   end
   
 end
+
+
+  function TestCombo(pCombo)
+    for c=1,#ComboList do
+      if(ComboList[c].sequence == pCombo) and (love.keyboard.isDown(ComboList[c].button)) then
+        Sequence = "";
+        if(ComboList[c].Name == "Hadou Ken") then
+          print("hadou ken");
+        end
+        return true;
+      end
+    end
+    return false;
+  end
 
 function SetBoxes()
   lstHurtBoxes = {};
@@ -344,7 +389,19 @@ function love.draw()
 end
 
 function love.keypressed(key)
-
+  TimerReset = TimerDuration;
+  
+  local Action = PreviousAction.."-"..key
+  if(ActionList[Action] ~= nil) then
+    Sequence = Sequence..ActionList[Action];
+  else
+    Action = key
+    if (ActionList[Action] ~= nil) then
+      Sequence = Sequence..ActionList[Action];
+    end
+  end
+  
+  PreviousAction = key;
   
 end
   
